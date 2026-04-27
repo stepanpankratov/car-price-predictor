@@ -65,24 +65,25 @@ def hist_plot(s: pd.Series, title: str):
 
 
 st.title("Car Price Predictor")
+st.caption("Предсказание цены подержанного автомобиля по его характеристикам")
 
 
-with st.expander("📊 EDA", expanded=True):
+with st.expander("📊 Разведочный анализ (EDA)", expanded=True):
     eda_file = st.file_uploader("Загрузить CSV для EDA", type=["csv"])
     if eda_file is None:
-        st.info("Загрузите CSV, чтобы увидеть графики")
+        st.info("Загрузите CSV, чтобы увидеть распределения признаков")
     else:
         df_eda = pd.read_csv(eda_file)
         st.dataframe(df_eda.head(30), use_container_width=True)
 
         if "selling_price" in df_eda.columns:
-            hist_plot(df_eda["selling_price"], "Target: selling_price")
+            hist_plot(df_eda["selling_price"], "Целевая переменная: selling_price")
 
         num_cols = df_eda.select_dtypes(include=np.number).columns.tolist()
         if num_cols:
-            chosen = st.multiselect("Числовые колонки", num_cols, default=num_cols[:4])
+            chosen = st.multiselect("Числовые признаки", num_cols, default=num_cols[:4])
             for c in chosen:
-                hist_plot(df_eda[c], f"Distribution: {c}")
+                hist_plot(df_eda[c], f"Распределение: {c}")
 
 st.subheader("🧠 Предсказание цены")
 
@@ -154,21 +155,21 @@ try:
     feature_names = ct.get_feature_names_out()
     coefs = model.coef_
 
-    df_coef = pd.DataFrame({"feature": feature_names, "coef": coefs})
-    df_coef["abs"] = df_coef["coef"].abs()
+    df_coef = pd.DataFrame({"Признак": feature_names, "Коэффициент": coefs})
+    df_coef["abs"] = df_coef["Коэффициент"].abs()
     df_coef = df_coef.sort_values("abs", ascending=False)
 
     topn = st.slider("Топ признаков", 10, 80, 25)
     top = df_coef.head(topn)
 
-    st.dataframe(top[["feature", "coef"]], use_container_width=True)
+    st.dataframe(top[["Признак", "Коэффициент"]], use_container_width=True)
 
     fig = plt.figure()
-    plt.barh(top["feature"][::-1], top["coef"][::-1])
-    plt.title("Top coefficients")
-    plt.xlabel("coef")
+    plt.barh(top["Признак"][::-1], top["Коэффициент"][::-1])
+    plt.title("Топ коэффициентов")
+    plt.xlabel("Коэффициент")
     st.pyplot(fig)
 
 except Exception as e:
-    st.warning("Не удалось построить веса")
+    st.warning("Не удалось построить веса модели")
     st.exception(e)
